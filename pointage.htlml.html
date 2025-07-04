@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Pointage des Employés</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; }
+    select, button { margin: 10px 5px 10px 0; padding: 5px; font-size: 16px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
+    h2 { color: #333; }
+  </style>
+</head>
+<body>
+
+  <h2>🕒 Pointage des Employés</h2>
+
+  <label for="employee">Sélectionner un employé :</label><br>
+  <select id="employee">
+    <option value="CHRISTY">CHRISTY</option>
+    <option value="STEPHEN">STEPHEN</option>
+    <option value="SOLANN">SOLANN</option>
+    <option value="GLOIRE">GLOIRE</option>
+    <option value="KETHIA">KETHIA</option>
+  </select><br>
+
+  <button onclick="clockIn()">Entrée</button>
+  <button onclick="clockOut()">Sortie</button>
+  <button onclick="exportCSV()">📤 Exporter CSV</button>
+
+  <table id="logTable">
+    <thead>
+      <tr>
+        <th>Employé</th>
+        <th>Entrée</th>
+        <th>Sortie</th>
+        <th>Durée Travaillée</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const logTableBody = document.querySelector("#logTable tbody");
+    const records = {}; // Stocke les heures d'entrée temporaires
+    const fullRecords = []; // Pour export CSV
+
+    function clockIn() {
+      const name = document.getElementById('employee').value;
+      const now = new Date();
+      records[name] = now; // On enregistre l'heure d'entrée
+      alert(${name} a pointé l'entrée à ${now.toLocaleTimeString()});
+    }
+
+    function clockOut() {
+      const name = document.getElementById('employee').value;
+      const now = new Date();
+
+      if (!records[name]) {
+        alert(⚠️ ${name} n'a pas pointé l'entrée.);
+        return;
+      }
+
+      const start = records[name];
+      const durationMs = now - start;
+      const duration = msToTime(durationMs);
+      const startStr = start.toLocaleString();
+      const endStr = now.toLocaleString();
+
+      addRow(name, startStr, endStr, duration);
+
+      fullRecords.push({ name, start: startStr, end: endStr, duration });
+      delete records[name]; // Supprime l'entrée pour ce cycle
+    }
+
+    function addRow(name, entry, exit, duration) {
+      const row = document.createElement('tr');
+      row.innerHTML = <td>${name}</td><td>${entry}</td><td>${exit}</td><td>${duration}</td>;
+      logTableBody.appendChild(row);
+    }
+
+    function msToTime(ms) {
+      const h = Math.floor(ms / 3600000);
+      const m = Math.floor((ms % 3600000) / 60000);
+      const s = Math.floor((ms % 60000) / 1000);
+      return ${h}h ${m}m ${s}s;
+    }
+
+    function exportCSV() {
+      let csv = 'Employé,Entrée,Sortie,Durée Travaillée\n';
+      fullRecords.forEach(r => {
+        csv += ${r.name},${r.start},${r.end},${r.duration}\n;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'pointage.csv';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+
+</body>
+</html>
